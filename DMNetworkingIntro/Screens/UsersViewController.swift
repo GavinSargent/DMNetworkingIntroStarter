@@ -37,8 +37,19 @@ class UsersViewController: UIViewController {
      */
     
     func getUsers(){
-        NetworkManager.shared.delegate = self
-        NetworkManager.shared.getUsers()
+//        NetworkManager.shared.delegate = self
+        NetworkManager.shared.getUsers(){ [weak self] result in
+            guard let self = self else {return}
+            
+            switch result {
+            case .success(let user):
+                usersRetrieved(user: user)
+                    
+            case .failure(let error):
+                presentAlert(error: error)
+            }
+        }
+
     }
     
     func configureTableView() {
@@ -46,10 +57,11 @@ class UsersViewController: UIViewController {
         usersTableView.dataSource = self
     }
     
-
-}
-
-extension UsersViewController: NetworkManagerDelegate {
+    func presentAlert (error: DMError) {
+        let alert = UIAlertController(title: "Error", message: "\(DMError.RawValue.self)", preferredStyle: UIAlertController.Style.alert)
+        alert.addAction(UIAlertAction(title: "Click", style: UIAlertAction.Style.default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
     
     func usersRetrieved(user: [User]) {
          users = user
@@ -61,6 +73,23 @@ extension UsersViewController: NetworkManagerDelegate {
  //        print(users)
      }
 }
+
+//MARK: - NetworkManagerDelegate
+
+//extension UsersViewController: NetworkManagerDelegate {
+//
+//    func usersRetrieved(user: [User]) {
+//         users = user
+//
+//        DispatchQueue.main.async {
+//            self.usersTableView.reloadData()
+//        }
+//
+// //        print(users)
+//     }
+//}
+
+//MARK: - UITableView Delegate and Data Source
 
 extension UsersViewController: UITableViewDelegate, UITableViewDataSource {
     
@@ -84,3 +113,5 @@ extension UsersViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
 }
+
+
